@@ -4,3 +4,4 @@ etc-pihole/
 etc-dnsmasq.d/
 config/
 db/
+.env
