@@ -1,33 +1,24 @@
+version: "3"
 networks:
   private_network:
     ipam:
       driver: default
       config:
         - subnet: 10.2.0.0/24
-
 services:
-  pihole:
-    depends_on:
-      - unbound
-    container_name: pihole
-    image: pihole/pihole:latest
-    hostname: pihole
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
     restart: unless-stopped
-    environment:
-      TZ: ${TIMEZONE} # Set in the .env file
-      WEBPASSWORD: ${PIHOLE_PASSWORD} # Blank password - Can be whatever you want.
-      DNS1: ${DNS1} # Unbound IP
-      DNS2: ${DNS2} # If we don't specify two, it will auto pick google.
-    # Volumes store your data between container upgrades
+    hostname: unbound
     volumes:
-      - "./etc-pihole/:/etc/pihole/"
-      - "./etc-dnsmasq.d/:/etc/dnsmasq.d/"
-    # Recommended but not required (DHCP needs NET_ADMIN)
-    # https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+      - ./unbound:/opt/unbound/etc/unbound/
+    networks:
+      private_network:
+        ipv4_address: 10.2.0.200
     cap_add:
       - NET_ADMIN
     env_file: .env
-        
   wireguard:
     depends_on:
       - unbound
@@ -35,8 +26,8 @@ services:
     image: linuxserver/wireguard
     container_name: wireguard
     ports:
-      - "${WG_PORT}:${WG_PORT}/udp"
-    restart: unless-stopped
+      - 5000:5000
+      - 51820:51820/udp
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -63,8 +54,20 @@ services:
       - ./db:/app/db
       - ./config:/config:v
     env_file: .env
-    environment:
-      WGUI_USERNAME: ${WGUI_USERNAME}
-      WGUI_PASSWORD: ${WGUI_USERPSWD}
-    ports:
-      - ${WGUI_PORT}:${WGUI_PORT} # WireGuard UI port
+
+  pihole:
+    depends_on:
+      - unbound
+    container_name: pihole
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    hostname: pihole
+    dns:
+      - 127.0.0.1
+      - ${PIHOLE_DNS}
+    volumes:
+      - ./etc-pihole/:/etc/pihole/
+      - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
+    cap_add:
+      - NET_ADMIN
+    env_file: ./.env

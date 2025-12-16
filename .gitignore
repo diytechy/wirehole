@@ -5,3 +5,4 @@ etc-dnsmasq.d/
 config/
 db/
 .env
+*.bak
