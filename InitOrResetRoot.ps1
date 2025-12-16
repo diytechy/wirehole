@@ -1,5 +1,8 @@
 # Get the directory where this script is located
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$separator = [System.IO.Path]::DirectorySeparatorChar
+$ResetContent = "Reset"+$separator+"*"
+$ResetPath = Join-Path $scriptDir $ResetContent
 
 # List of folders to reset
 $folders = @(
@@ -21,5 +24,4 @@ foreach ($folder in $folders) {
     # Create the folder
     New-Item -Path $path -ItemType Directory | Out-Null
 }
-$ResetPath = Join-Path $scriptDir "Reset"
 Copy-Item -Path $ResetPath -Destination $scriptDir -Recurse -Force
