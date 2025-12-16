@@ -13,7 +13,7 @@ services:
     hostname: unbound
     networks:
       private_network:
-        ipv4_address: 10.2.0.200
+        ipv4_address: ${LOCAL_NETWORK_SERVER_IP}
 
   pihole:
     depends_on:
@@ -22,15 +22,12 @@ services:
     image: pihole/pihole:latest
     hostname: pihole
     restart: unless-stopped
-    dns:
-      - 127.0.0.1
-      - 10.2.0.200 # Points to unbound
     environment:
       TZ: ${TIMEZONE} # Set in the .env file
       WEBPASSWORD: ${PIHOLE_PASSWORD} # Blank password - Can be whatever you want.
-      ServerIP: 10.2.0.100 # Internal IP of pihole
-      DNS1: 10.2.0.200 # Unbound IP
-      DNS2: 10.2.0.200 # If we don't specify two, it will auto pick google.
+      ServerIP: ${LOCAL_NETWORK_SERVER_IP} # Internal IP of pihole
+      DNS1: ${DNS1} # Unbound IP
+      DNS2: ${DNS2} # If we don't specify two, it will auto pick google.
     # Volumes store your data between container upgrades
     volumes:
       - "./etc-pihole/:/etc/pihole/"
@@ -41,7 +38,7 @@ services:
       - NET_ADMIN
     networks:
       private_network:
-        ipv4_address: 10.2.0.100
+        ipv4_address: ${LOCAL_NETWORK_SERVER_IP}
         
   wireguard:
     depends_on:
@@ -50,8 +47,8 @@ services:
     image: linuxserver/wireguard
     container_name: wireguard
     ports:
-      - 5000:5000
-      - 51820:51820/udp
+      - "${WG_PORT}:${WG_PORT}/udp"
+    restart: unless-stopped
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -78,3 +75,8 @@ services:
       - ./db:/app/db
       - ./config:/config
     env_file: .env
+    environment:
+      WGUI_USERNAME: ${WGUI_USERNAME}
+      WGUI_PASSWORD: ${WGUI_USERPSWD}
+    ports:
+      - ${WGUI_PORT}:${WGUI_PORT} # WireGuard UI port
