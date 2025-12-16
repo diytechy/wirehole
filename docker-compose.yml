@@ -1,11 +1,12 @@
-version: "3"
 networks:
   private_network:
     ipam:
       driver: default
       config:
         - subnet: 10.2.0.0/24
+        
 services:
+      
   unbound:
     image: mvance/unbound:latest
     container_name: unbound
@@ -19,6 +20,20 @@ services:
     cap_add:
       - NET_ADMIN
     env_file: .env
+
+  caddy:
+    image: caddy:2-alpine # Using the lightweight alpine image
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount the local Caddyfile into the container
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      # Persist Caddy's data (certs, etc.) and config directories
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    
   wireguard:
     depends_on:
       - unbound
@@ -35,7 +50,7 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
     volumes:
-      - ./config:/config:v
+      - ./wg_config:/config:v
     env_file: .env
 
   wireguard-ui:
@@ -71,3 +86,6 @@ services:
     cap_add:
       - NET_ADMIN
     env_file: ./.env
+    ports:
+      # Default HTTP Port
+      - "8080:80/tcp"

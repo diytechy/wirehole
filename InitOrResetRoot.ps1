@@ -6,7 +6,9 @@ $ResetPath = Join-Path $scriptDir $ResetContent
 
 # List of folders to reset
 $folders = @(
-    "config",
+    "wg_config",
+    "caddy_config",
+    "caddy_data",
     "db",
     "etc-dnsmasq.d",
     "etc-pihole",

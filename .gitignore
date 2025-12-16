@@ -6,3 +6,6 @@ config/
 db/
 .env
 *.bak
+caddy_data
+caddy_config
+wg_config
