@@ -6,17 +6,6 @@ networks:
         - subnet: 10.2.0.0/24
 
 services:
-  unbound:
-    image: mvance/unbound:latest
-    container_name: unbound
-    restart: unless-stopped
-    hostname: unbound
-    volumes:
-      - ./unbound:/opt/unbound/etc/unbound/
-    cap_add:
-      - NET_ADMIN
-    env_file: .env
-
   pihole:
     depends_on:
       - unbound
