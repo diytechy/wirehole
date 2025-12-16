@@ -3,6 +3,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $separator = [System.IO.Path]::DirectorySeparatorChar
 $ResetContent = "Reset"+$separator+"*"
 $ResetPath = Join-Path $scriptDir $ResetContent
+$OverlayPath = Join-Path $scriptDir (".."+$separator+"Personal"+$separator+"Pi-Hole Config"+$separator+"*")
 
 # List of folders to reset
 $folders = @(
@@ -27,3 +28,8 @@ foreach ($folder in $folders) {
     New-Item -Path $path -ItemType Directory | Out-Null
 }
 Copy-Item -Path $ResetPath -Destination $scriptDir -Recurse -Force
+
+if (Test-Path $OverlayPath) {
+   Write-Host "Overlay folder defined, copying over."
+   Copy-Item -Path $OverlayPath -Destination $scriptDir -Recurse -Force
+ }

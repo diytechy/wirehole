@@ -9,3 +9,4 @@ db/
 caddy_data
 caddy_config
 wg_config
+Caddyfile

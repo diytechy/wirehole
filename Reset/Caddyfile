@@ -1,8 +1,0 @@
-# Caddyfile
-diyt.win {
-    # Reverse proxy to your application's service name and port
-    reverse_proxy my-app:8000
-    # Optional: Enable file serving from a specific directory if needed
-    # root * /var/www/html
-    # file_server
-}
