@@ -10,3 +10,6 @@ REM Run the PowerShell script with the same name
 powershell -NoProfile -ExecutionPolicy Bypass -File "%scriptPath%%scriptName%.ps1"
 
 endlocal
+
+
+pause
