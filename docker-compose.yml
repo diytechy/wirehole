@@ -3,9 +3,26 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.2.0.0/24
+        - subnet: 10.10.10.0/24
         
 services:
+
+  caddy:
+    image: caddy:2-alpine # Using the lightweight alpine image
+    restart: no
+    #restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount the local Caddyfile into the container
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      # Persist Caddy's data (certs, etc.) and config directories
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    networks:
+      private_network:
+        ipv4_address: 10.10.10.01
       
   unbound:
     image: mvance/unbound:latest
@@ -16,23 +33,10 @@ services:
       - ./unbound:/opt/unbound/etc/unbound/
     networks:
       private_network:
-        ipv4_address: 10.2.0.200
+        ipv4_address: 10.10.10.02
     cap_add:
       - NET_ADMIN
     env_file: .env
-
-  caddy:
-    image: caddy:2-alpine # Using the lightweight alpine image
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      # Mount the local Caddyfile into the container
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      # Persist Caddy's data (certs, etc.) and config directories
-      - ./caddy_data:/data
-      - ./caddy_config:/config
     
   wireguard:
     depends_on:
