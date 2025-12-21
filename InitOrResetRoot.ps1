@@ -5,6 +5,9 @@ $ResetContent = "Example"+$separator+"*"
 $ResetPath = Join-Path $scriptDir $ResetContent
 $OverlayPath = Join-Path $scriptDir (".."+$separator+"Personal"+$separator+"Wirehole Config"+$separator+"*")
 
+$CaddyfilePath = ".\Caddyfile"
+$PHTOMLfilePath = ".\pihole.toml"
+
 # List of folders to reset
 $folders = @(
     "wg_config",
@@ -17,8 +20,12 @@ $folders = @(
     "var+$separator+www"
 )
 
-$CaddyfilePath = ".\Caddyfile"
-$PHTOMLfilePath = ".\pihole.toml"
+#List of files to forcably remove, in order to copy-over or regenerate if not available.
+$files2forceImport = @(
+    $CaddyfilePath,
+    $PHTOMLfilePath
+)
+
 
 # LoadEnv funciton.
 # Safely loads key=value pairs from a .env file into the current session's environment variables
@@ -161,7 +168,7 @@ pihole.@LocalNetworkHostName {
     respond "Hello world!"
 }
 '
-
+#Clean folders
 foreach ($folder in $folders) {
     $path = Join-Path $scriptDir $folder
 
@@ -173,6 +180,19 @@ foreach ($folder in $folders) {
     # Create the folder
     New-Item -Path $path -ItemType Directory | Out-Null
 }
+
+#Clean applicable files
+foreach ($file in $files2forceImport) {
+    $path = Join-Path $scriptDir $file
+
+    # Remove the folder if it exists
+    if (Test-Path $path) {
+        Remove-Item -Path $path -Force
+    }
+}
+
+
+#Copy example path, before overlaying.
 Copy-Item -Path $ResetPath -Destination $scriptDir -Recurse -Force
 
 if (Test-Path $OverlayPath) {

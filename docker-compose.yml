@@ -1,12 +1,4 @@
-networks:
-  private_network:
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.10.10.0/24
-        
 services:
-
   caddy:
     image: caddy:2-alpine # Using the lightweight alpine image
     restart: no
@@ -20,9 +12,10 @@ services:
       # Persist Caddy's data (certs, etc.) and config directories
       - ./caddy_data:/data
       - ./caddy_config:/config
+      - ./var/www:/var/www
     networks:
       private_network:
-        ipv4_address: 10.10.10.01
+        ipv4_address: ${CADDY_IPV4_ADDRESS}
       
   unbound:
     image: mvance/unbound:latest
@@ -31,21 +24,18 @@ services:
     hostname: unbound
     volumes:
       - ./unbound:/opt/unbound/etc/unbound/
+      - ./ublogging:/dev/ublogging/
     networks:
       private_network:
-        ipv4_address: 10.10.10.02
+        ipv4_address: ${UNBOUND_IPV4_ADDRESS}
     cap_add:
       - NET_ADMIN
     env_file: .env
     
   wireguard:
-    depends_on:
-      - unbound
-      - pihole
     image: linuxserver/wireguard
     container_name: wireguard
     ports:
-      - 5000:5000
       - 51820:51820/udp
     cap_add:
       - NET_ADMIN
@@ -56,9 +46,13 @@ services:
     volumes:
       - ./wg_config:/config:v
     env_file: .env
+    networks:
+      private_network:
+        ipv4_address: ${WG_IPV4_ADDRESS}
 
   wireguard-ui:
     image: ngoduykhanh/wireguard-ui:latest
+    entrypoint: ./wg-ui --disable-login
     container_name: wireguard-ui
     depends_on:
       - wireguard
@@ -71,7 +65,7 @@ services:
         max-size: 50m
     volumes:
       - ./db:/app/db
-      - ./config:/config:v
+      - ./wg_config:/config:v
     env_file: .env
 
   pihole:
@@ -82,14 +76,21 @@ services:
     restart: unless-stopped
     hostname: pihole
     dns:
-      - 127.0.0.1
-      - ${PIHOLE_DNS}
+      - ${UNBOUND_IPV4_ADDRESS}
     volumes:
       - ./etc-pihole/:/etc/pihole/
-      - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
+      - ./pihole.toml:/etc/pihole/pihole.toml:ro
     cap_add:
       - NET_ADMIN
     env_file: ./.env
-    ports:
-      # Default HTTP Port
-      - "8080:80/tcp"
+    networks:
+      private_network:
+        ipv4_address: ${PIHOLE_IPV4_ADDRESS}
+    
+networks:
+  private_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${SUBNET_MASK}
+          gateway: ${GATEWAY_IPV4_ADDRESS}
