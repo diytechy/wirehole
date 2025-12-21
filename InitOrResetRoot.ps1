@@ -110,15 +110,15 @@ $PiHoleTOML_Template = '[webserver]
 [dns]
 # Array of custom CNAME records each one in CNAME form: "ALIAS TARGET"
 cnameRecords = [
-    "@PublictAddress,host-gateway",
-    "@LocalNetworkHostName,host-gateway"
+    "@(PublictAddress),host-gateway",
+    "@(LocalNetworkHostName),host-gateway"
 ]'
 
 $CaddyFileTemplate = '
 # Caddyfile
 (auth_snippet) {
    basic_auth {
-   @CaddyUserLogin @CaddyPasswordHash
+   @(CaddyUserLogin) @(CaddyPasswordHash)
    }
 }
 
@@ -143,19 +143,19 @@ pihole.localhost {
    import pihole_snippet
 }
 
-wg.@PublictAddress {
+wg.@(PublictAddress) {
    import wg_snippet
 }
 
-pihole.@PublictAddress {
+pihole.@(PublictAddress) {
    import pihole_snippet
 }
 
-wg.@LocalNetworkHostName {
+wg.@(LocalNetworkHostName) {
    import wg_snippet
 }
 
-pihole.@LocalNetworkHostName {
+pihole.@(LocalNetworkHostName) {
    import pihole_snippet
 }
 
