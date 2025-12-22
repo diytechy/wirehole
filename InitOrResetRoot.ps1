@@ -140,29 +140,44 @@ $CaddyFileTemplate = '
 (pihole_snippet) {
    import auth_snippet
    encode zstd gzip
-	redir / /admin{uri}
+   redir / /admin{uri}
    reverse_proxy pihole:80
 }
 
 wg.localhost {
-   handle {
-      import wg_snippet
-   }
+   import wg_snippet
 }
 
 pihole.localhost {
-   handle {
-      import pihole_snippet
-   }
+   import pihole_snippet
 }
 
-:80 {
-    # Reverse proxy to your application''s service name and port
-    # reverse_proxy my-app:8000
-    # Optional: Enable file serving from a specific directory if needed
-    # root * /var/www/html
-    # file_server
-    respond "Hello world!"
+wg.@PublictAddress {
+   import wg_snippet
+}
+
+pihole.@PublictAddress {
+   import pihole_snippet
+}
+
+wg.@LocalNetworkHostName {
+   import wg_snippet
+}
+
+pihole.@LocalNetworkHostName {
+   import pihole_snippet
+}
+
+localhost {
+    import CaddyFileGeneral
+}
+
+@PublictAddress {
+    import CaddyFileGeneral
+}
+
+@LocalNetworkHostName {
+    import CaddyFileGeneral
 }'
 
 #Clean folders
@@ -197,6 +212,7 @@ if (($null -ne $OverlayPath) -and (Test-Path $OverlayPath)) {
    Copy-Item -Path $OverlayPath -Destination $scriptDir -Recurse -Force
  }
 
+ #Pull environmental variables from the environment file into a hash table, to update template code if necessary.
  $EnvVars = Get-EnvFileDictionary;
 
  if (-not(Test-Path $CaddyfilePath)) {

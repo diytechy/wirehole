@@ -9,6 +9,7 @@ services:
     volumes:
       # Mount the local Caddyfile into the container
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./CaddyFileGeneral:/etc/caddy/CaddyFileGeneral
       # Persist Caddy's data (certs, etc.) and config directories
       - ./caddy_data:/data
       - ./caddy_config:/config
