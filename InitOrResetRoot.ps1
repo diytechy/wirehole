@@ -3,7 +3,8 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $separator = [System.IO.Path]::DirectorySeparatorChar
 $ResetContent = "Example"+$separator+"*"
 $ResetPath = Join-Path $scriptDir $ResetContent
-$OverlayPath = Join-Path $scriptDir (".."+$separator+"Personal"+$separator+"Wirehole Config"+$separator+"*")
+$OverlayPath = $null
+#$OverlayPath = Join-Path $scriptDir (".."+$separator+"Personal"+$separator+"Wirehole Config"+$separator+"*")
 
 $CaddyfilePath = ".\Caddyfile"
 $PHTOMLfilePath = ".\pihole.toml"
@@ -17,7 +18,7 @@ $folders = @(
     "etc-pihole",
     "unbound",
     "ublogging",
-    "var+$separator+www"
+    ("var"+$separator+"www")
 )
 
 #List of files to forcably remove, in order to copy-over or regenerate if not available.
@@ -70,6 +71,14 @@ function Get-EnvFileDictionary {
             continue
         }
 
+        # Strip surrounding single or double quotes
+        if (
+            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
+            ($value.StartsWith("'") -and $value.EndsWith("'"))
+        ) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
         # Add or overwrite
         $envTable[$key] = $value
     }
@@ -78,7 +87,7 @@ function Get-EnvFileDictionary {
 }
 
 function Expand-AtVariables {
-    [CmdletBinding()]
+    [CmdletBinding()]                                                                                                             
     param(
         [Parameter(Mandatory)]
         [string]$Text,
@@ -110,15 +119,15 @@ $PiHoleTOML_Template = '[webserver]
 [dns]
 # Array of custom CNAME records each one in CNAME form: "ALIAS TARGET"
 cnameRecords = [
-    "@(PublictAddress),host-gateway",
-    "@(LocalNetworkHostName),host-gateway"
+    "@PublictAddress,host-gateway",
+    "@LocalNetworkHostName,host-gateway"
 ]'
 
 $CaddyFileTemplate = '
 # Caddyfile
 (auth_snippet) {
    basic_auth {
-   @(CaddyUserLogin) @(CaddyPasswordHash)
+   @CaddyUserLogin @CaddyPasswordHash
    }
 }
 
@@ -136,27 +145,15 @@ $CaddyFileTemplate = '
 }
 
 wg.localhost {
-   import wg_snippet
+   handle {
+      import wg_snippet
+   }
 }
 
 pihole.localhost {
-   import pihole_snippet
-}
-
-wg.@(PublictAddress) {
-   import wg_snippet
-}
-
-pihole.@(PublictAddress) {
-   import pihole_snippet
-}
-
-wg.@(LocalNetworkHostName) {
-   import wg_snippet
-}
-
-pihole.@(LocalNetworkHostName) {
-   import pihole_snippet
+   handle {
+      import pihole_snippet
+   }
 }
 
 :80 {
@@ -166,8 +163,8 @@ pihole.@(LocalNetworkHostName) {
     # root * /var/www/html
     # file_server
     respond "Hello world!"
-}
-'
+}'
+
 #Clean folders
 foreach ($folder in $folders) {
     $path = Join-Path $scriptDir $folder
@@ -195,7 +192,7 @@ foreach ($file in $files2forceImport) {
 #Copy example path, before overlaying.
 Copy-Item -Path $ResetPath -Destination $scriptDir -Recurse -Force
 
-if (Test-Path $OverlayPath) {
+if (($null -ne $OverlayPath) -and (Test-Path $OverlayPath)) {
    Write-Host "Overlay folder defined, copying over."
    Copy-Item -Path $OverlayPath -Destination $scriptDir -Recurse -Force
  }
@@ -204,10 +201,10 @@ if (Test-Path $OverlayPath) {
 
  if (-not(Test-Path $CaddyfilePath)) {
    Write-Host "Caddyfile does not exist, creating from build-in template..."
-   Set-Content -Path $CaddyfilePath -Value (Expand-AtVariables($CaddyFileTemplate, $EnvVars)) -Encoding UTF8
+   Set-Content -Path $CaddyfilePath -Value (Expand-AtVariables $CaddyFileTemplate $EnvVars) -Encoding UTF8 -NoNewline
  }
  
  if (-not(Test-Path $PHTOMLfilePath)) {
    Write-Host "Pi Hole TOML file does not exist, creating from build-in template..."
-   Set-Content -Path $PHTOMLfilePath -Value (Expand-AtVariables($PiHoleTOML_Template, $EnvVars)) -Encoding UTF8
+   Set-Content -Path $PHTOMLfilePath -Value (Expand-AtVariables $PiHoleTOML_Template $EnvVars) -Encoding UTF8 -NoNewline
  }
