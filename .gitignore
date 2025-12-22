@@ -4,10 +4,11 @@ etc-pihole/
 etc-dnsmasq.d/
 config/
 db/
-.env
+/.env
 *.bak
 caddy_data
 caddy_config
 wg_config
-Caddyfile
-pihole.toml
+/Caddyfile
+/pihole.toml
+/CaddyFileGeneral
