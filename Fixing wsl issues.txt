@@ -1,0 +1,32 @@
+Create the override directory
+sudo mkdir -p /etc/systemd/system/systemd-networkd-wait-online.service.d
+
+📌 Create the override file
+sudo nano /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf
+
+Paste your content:
+[Service]
+ExecStart=
+ExecStart=/lib/systemd/systemd-networkd-wait-online -i eth0
+
+
+The first ExecStart= line clears the original command (required by systemd).
+The second line sets your replacement.
+
+📌 Reload systemd
+sudo systemctl daemon-reload
+
+
+
+📌 Optional: verify the override is active
+systemctl cat systemd-networkd-wait-online.service
+
+
+You should see your override appended at the bottom.
+
+🧠 Why this fixes WSL freezing
+WSL often hangs when systemd-networkd-wait-online waits for interfaces that don’t exist or never reach “online” state.
+Using -i eth0 forces it to wait only for the WSL virtual NIC, preventing long boot delays.
+This matches the behavior described in Linux documentation and community reports about wait-online timeouts.
+
+If you want, I can also show you how to disable the service entirely, or how to detect the correct interface name inside WSL automatically.
