@@ -131,19 +131,39 @@ CaddyFileTemplate='
 }
 
 wg.localhost {
-   handle {
-      import wg_snippet
-   }
+   import wg_snippet
 }
 
 pihole.localhost {
-   handle {
-      import pihole_snippet
-   }
+   import pihole_snippet
 }
 
-:80 {
-    respond "Hello world!"
+wg.@PublictAddress {
+   import wg_snippet
+}
+
+pihole.@PublictAddress {
+   import pihole_snippet
+}
+
+wg.@LocalNetworkHostName {
+   import wg_snippet
+}
+
+pihole.@LocalNetworkHostName {
+   import pihole_snippet
+}
+
+localhost {
+    import CaddyFileGeneral
+}
+
+@PublictAddress {
+    import CaddyFileGeneral
+}
+
+@LocalNetworkHostName {
+    import CaddyFileGeneral
 }'
 
 # ----------------------------------------

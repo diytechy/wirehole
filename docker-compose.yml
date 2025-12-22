@@ -17,6 +17,14 @@ services:
     networks:
       private_network:
         ipv4_address: ${CADDY_IPV4_ADDRESS}
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 500M
+        reservations:
+          cpus: "0.5"
+          memory: 200M
       
   unbound:
     image: mvance/unbound:latest
@@ -32,6 +40,14 @@ services:
     cap_add:
       - NET_ADMIN
     env_file: .env
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 500M
+        reservations:
+          cpus: "0.5"
+          memory: 200M
     
   wireguard:
     image: linuxserver/wireguard
@@ -50,6 +66,14 @@ services:
     networks:
       private_network:
         ipv4_address: ${WG_IPV4_ADDRESS}
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1000M
+        reservations:
+          cpus: "0.5"
+          memory: 200M
 
   wireguard-ui:
     image: ngoduykhanh/wireguard-ui:latest
@@ -68,6 +92,14 @@ services:
       - ./db:/app/db
       - ./wg_config:/config:v
     env_file: .env
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 200M
+        reservations:
+          cpus: "0.5"
+          memory: 200M
 
   pihole:
     depends_on:
@@ -87,6 +119,14 @@ services:
     networks:
       private_network:
         ipv4_address: ${PIHOLE_IPV4_ADDRESS}
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 200M
+        reservations:
+          cpus: "0.5"
+          memory: 200M
     
 networks:
   private_network:
