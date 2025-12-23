@@ -5,9 +5,8 @@ set -euo pipefail
 # Resolve script directory
 # ----------------------------------------
 scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-separator="/"
 
-ResetContent="Example${separator}*"
+ResetContent="Example/"
 ResetPath="${scriptDir}/${ResetContent}"
 
 # Optional overlay path (disabled by default)
@@ -186,12 +185,16 @@ done
 # ----------------------------------------
 # Copy example folder
 # ----------------------------------------
-cp -r $ResetPath "$scriptDir"
+echo "Source directory: $ResetPath"
+echo "Target directory: $scriptDir"
+cp -r "$ResetPath"* "$scriptDir"
+cp -r "$ResetPath".* "$scriptDir"
+echo "Copying over example folder to root folder..."
 
 # Optional overlay
-if [[ -n "$OverlayPath" && -e $OverlayPath ]]; then
+if [[ -n "$OverlayPath" && -e "$OverlayPath" ]]; then
     echo "Overlay folder defined, copying over."
-    cp -r $OverlayPath "$scriptDir"
+    cp -r "$OverlayPath" "$scriptDir"
 fi
 
 # ----------------------------------------
